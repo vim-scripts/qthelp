@@ -1,0 +1,50 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=3351
+
+This plugin would allow you to open Qt help pages in browser from your C++ source code. Currently it can show help if the word underneath your cursor is a class name, a variable name or a class-member name.
+
+Examples:
+
+QStr|ing trackTitle, artistName;
+QString track|Title, artistName(\"Unknown\");
+track|Title = \"Unknown\";
+Running command :QHelpOnThis will open help on QString.
+
+trackTitle.ri|ght(10);
+Running command :QHelpOnThis will open help on QString::right.
+
+Running command :QHelp QPixmap::QPixmap will open help on
+QPixmap constructor.
+
+Configuring:
+
+g:qthelp_browser - command to run your browser
+default: &#039&#039 (so an error message will be printed if your try to use plugin)
+Note: on Windows use something like (notice &#039start&#039 at the beginning)
+&#039start c:\\Program files\\Mozilla Firefox\\firefox.exe&#039
+or Vim will be waiting until you close your browser.
+
+Using:
+
+1. Make tags-file for your html-qthelp.
+2. Add that tags-file into your &#039tags&#039 option (WARNING: doing this in your .vimrc file can slow down and pollute completion list for not Qt-projects).
+3. Setup g:qthelp_browser variable with the command to run your browser.
+4. Map command QHelpOnThis on some hotkey.
+5. Use QHelp from command-line for faster navigating through help (to escape manual searching of needed section).
+
+Limitation:
+
+I didn&#039t found a way to determine inheritance hierarchy using tags so trying
+QStringList strlst;
+strlst.in|sert(\"String\");
+will open reference for QString, not for QList::insert.
+
+Warning:
+
+In some cases it can take a while for searching definition (for example when it doesn&#039t exist) if this happens hit Ctrl-C to break searching.
+
+Advice:
+
+You may be interesting in inccomplete (vimscript #3345) plugin, that can help to find header file you need.
+
+You could always find the latest version on github: http://github.com/xaizek/vim-qthelp
+Feel free to contact me if you have any question or suggestions.
