@@ -5,8 +5,8 @@ This plugin would allow you to open Qt help pages in browser from your C++ sourc
 Examples:
 
 QStr|ing trackTitle, artistName;
-QString track|Title, artistName(\"Unknown\");
-track|Title = \"Unknown\";
+QString track|Title, artistName("Unknown");
+track|Title = "Unknown";
 Running command :QHelpOnThis will open help on QString.
 
 trackTitle.ri|ght(10);
@@ -18,15 +18,15 @@ QPixmap constructor.
 Configuring:
 
 g:qthelp_browser - command to run your browser
-default: &#039&#039 (so an error message will be printed if your try to use plugin)
-Note: on Windows use something like (notice &#039start&#039 at the beginning)
-&#039start c:\\Program files\\Mozilla Firefox\\firefox.exe&#039
+default: '' (so an error message will be printed if your try to use plugin)
+Note: on Windows use something like (notice 'start' at the beginning)
+'start c:\\Program files\\Mozilla Firefox\\firefox.exe'
 or Vim will be waiting until you close your browser.
 
 Using:
 
 1. Make tags-file for your html-qthelp.
-2. Add that tags-file into your &#039tags&#039 option (WARNING: doing this in your .vimrc file can slow down and pollute completion list for not Qt-projects).
+2. Add that tags-file into your 'tags' option (WARNING: doing this in your .vimrc file can slow down and pollute completion list for not Qt-projects).
 3. Setup g:qthelp_browser variable with the command to run your browser.
 4. Map command QHelpOnThis on some hotkey.
 5. Use QHelp from command-line for faster navigating through help (to escape manual searching of needed section).
@@ -35,12 +35,12 @@ Limitation:
 
 I didn&#039t found a way to determine inheritance hierarchy using tags so trying
 QStringList strlst;
-strlst.in|sert(\"String\");
+strlst.in|sert("String");
 will open reference for QString, not for QList::insert.
 
 Warning:
 
-In some cases it can take a while for searching definition (for example when it doesn&#039t exist) if this happens hit Ctrl-C to break searching.
+In some cases it can take a while for searching definition (for example when it doesn't exist) if this happens hit Ctrl-C to break searching.
 
 Advice:
 
