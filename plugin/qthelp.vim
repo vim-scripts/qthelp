@@ -1,6 +1,6 @@
 " Name:        qthelp
-" Author:      xaizek (xaizek@gmail.com)
-" Version:     1.1.1
+" Author:      xaizek (xaizek@lavabit.com)
+" Version:     1.1.6
 "
 " Description: This plugin would allow you to open Qt help pages in browser
 "              from your C++ source code. Currently it can show help if the word
@@ -27,13 +27,21 @@
 "                    or Vim will be waiting until you close your browser.
 "
 " Using:       1. Make tags-file for your html-qthelp.
+"                 Addition by DFrank: just go to <Qt-current-version-path>/doc
+"                 (say, D:/Qt/4.8.4/doc), and run 'ctags -R .'.
 "              2. Add that tags-file into your 'tags' option (WARNING: doing
 "                 this in your .vimrc file can slow down and pollute completion
 "                 list for not Qt-projects).
 "              3. Setup g:qthelp_browser variable with the command to run your
-"                 browser.
-"              4. Map command QHelpOnThis on some hotkey.
-"              5. Use QHelp from command-line for faster navigating through
+"                 browser.  The value is not escaped, this is up to you, so
+"                 it's possible to specify parameter list along with command
+"                 to be executed.  URL is appended to this command after a
+"                 space.
+"              4. Optionally setup g:qthelp_tags variable with custom value
+"                 for the 'tags' option, which will be used to look for Qt
+"                 documentation tags.
+"              5. Map command QHelpOnThis on some hotkey.
+"              6. Use QHelp from command-line for faster navigating through
 "                 help (to escape manual searching of needed section).
 "
 " Limitation:  I didn't found a way to determine inheritance hierarchy using
@@ -55,6 +63,17 @@
 "              v1.0.1 (2013-03-09) - Fixed multiple load guard
 "              v1.1.1 (2013-03-09) - Added support for latest versions of Qt
 "                                    (thanks to Dmitry Frank).
+"              v1.1.2 (2013-05-14) - Fixed support for latest versions of Qt
+"                                    by the :QHelp command (thanks to Dmitry
+"                                    Frank).
+"              v1.1.3 (2013-05-14) - Fixed regular expression for filtering
+"                                    help tags (thanks to Dmitry Frank).
+"              v1.1.4 (2013-05-15) - Fixed issue with 'shellslash' option on
+"                                    Windows (thanks to Dmitry Frank).
+"              v1.1.5 (2013-05-15) - Don't escape g:qthelp_browser on
+"                                    invocation (thanks to Dmitry Frank).
+"              v1.1.6 (2013-05-15) - Add g:qthelp_tags option (thanks to
+"                                    Dmitry Frank).
 
 if exists("g:loaded_qthelp")
     finish
@@ -98,6 +117,12 @@ command! -nargs=1 QHelp call QHHelp('<args>')
 " underneath the cursor
 function! QHHelp(query)
     call s:QHDebug('QHDBG: QHHelp(cword="'.a:query.'")')
+
+    let l:tags = &l:tags
+    if exists('g:qthelp_tags')
+        let &l:tags = g:qthelp_tags
+    endif
+
     if empty(a:query)
         let l:lst = s:QHGetTagsListUC()
     else
@@ -110,6 +135,8 @@ function! QHHelp(query)
         call s:QHDebug('QHDBG: QHHelp, filename="'.l:lst[0]['filename'].'"')
         call <SID>QHOpenBrowser(l:lst[0]['filename'])
     endif
+
+    let &l:tags = l:tags
 endfunction
 
 " determines if a class name, a variable name or a class member name is
@@ -189,7 +216,7 @@ endfunction
 " tries to guess tag by its name and name of the class
 function! s:QHGetWithoutAppleRef(tag, class)
     let l:lst = taglist('^'.a:tag.'$')
-    call filter(l:lst, 'v:val["filename"] =~? "[/\]'.a:class.'\.html$"')
+    call filter(l:lst, 'v:val["filename"] =~? "[/\\\\]'.a:class.'\.html$"')
     return l:lst
 endfunction
 
@@ -201,22 +228,14 @@ function! s:QHGetTagsList(query)
 
     let l:regex = '\('.s:idregex.'\)::\('.s:idregex.'\)'
     if empty(matchstr(a:query, l:regex))
-        let l:lst = taglist('//apple_ref/cpp/cl//'.a:query.'$')
+        let l:lst = s:QHTryFindClass(a:query)
         let b:membername = ''
     else
         let l:class = substitute(a:query, l:regex, '\1', '')
         call s:QHDebug('QHDBG: QHGetTagsList, class="'.l:class.'"')
         let l:member = substitute(a:query, l:regex, '\2', '')
         call s:QHDebug('QHDBG: QHGetTagsList, member="'.l:member.'"')
-        let l:lst = taglist('//apple_ref/cpp/clm/'.l:class.'/'.l:member.'$')
-        if empty(l:lst)
-            let l:lst = taglist('//apple_ref/cpp/instm/'
-                               \.l:class.'/'.l:member.'$')
-        endif
-        if empty(l:lst)
-            let l:lst = taglist('//apple_ref/cpp/tag/'
-                               \.l:class.'/'.l:member.'$')
-        endif
+        let l:lst = s:QHGetTagsListOnMember(l:class, l:member)
         let b:membername = l:member
     endif
 
@@ -225,6 +244,11 @@ endfunction
 
 " opens users browser
 function! s:QHOpenBrowser(file)
+    let l:shellslash = &shellslash
+    if has('win32') && &shellslash
+        set noshellslash
+    endif
+
     if s:debugging == 1
         return
     endif
@@ -237,11 +261,13 @@ function! s:QHOpenBrowser(file)
         let l:browserargs = l:browserargs.'&'
     endif
     try
-        exe ":silent !".shellescape(g:qthelp_browser)." ".l:browserargs
+        exe ':silent !'.g:qthelp_browser.' '.l:browserargs
     catch 'E484'
         call s:QHTellUser('An error occuried while running your browser. '
                         \.'Maybe your g:qthelp_browser option is incorrect.')
     endtry
+
+    let &shellslash = l:shellslash
 endfunction
 
 " lets tell user about what we have found

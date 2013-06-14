@@ -25,11 +25,12 @@ or Vim will be waiting until you close your browser.
 
 Using:
 
-1. Make tags-file for your html-qthelp.
+1. Make tags-file for your html-qthelp. Addition by DFrank: just go to <Qt-current-version-path>/doc (say, D:/Qt/4.8.4/doc), and run 'ctags -R .'.
 2. Add that tags-file into your 'tags' option (WARNING: doing this in your .vimrc file can slow down and pollute completion list for not Qt-projects).
-3. Setup g:qthelp_browser variable with the command to run your browser.
-4. Map command QHelpOnThis on some hotkey.
-5. Use QHelp from command-line for faster navigating through help (to escape manual searching of needed section).
+3. Setup g:qthelp_browser variable with the command to run browser.  The value is not escaped, this is up to you, so it's possible to specify parameter list along with command to be executed.  URL is appended to this command after a space.
+4. Optionally setup g:qthelp_tags variable with custom value for the 'tags' option, which will be used to look for Qt documentation tags.
+5. Map command QHelpOnThis on some hotkey.
+6. Use QHelp from command-line for faster navigating through help (to escape manual searching of needed section).
 
 Limitation:
 
